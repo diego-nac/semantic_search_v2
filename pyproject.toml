@@ -1,0 +1,41 @@
+[project]
+name = "multi-scholar-search"
+version = "0.1.0"
+description = "Multi-source academic article search"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "beautifulsoup4>=4.14.3",
+    "habanero>=1.2.5",
+    "drissionpage>=4.1.1.2",
+    "httpx>=0.28.1",
+    "openai-whisper>=20250625",
+    "playwright>=1.60.0",
+    "playwright-stealth>=2.0.3",
+    "pydantic-settings>=2.14.1",
+    "python-dotenv>=1.2.2",
+    "requests>=2.34.2",
+    "rich>=15.0.0",
+    "typer>=0.25.1",
+    "scholarly>=1.7.11",
+    "doi2bib>=0.4.0",
+]
+
+[project.scripts]
+mss = "multi_scholar_search.main:app"
+
+[tool.uv]
+package = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "hatchling>=1.29.0",
+    "pytest>=9.0.3",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/multi_scholar_search"]
