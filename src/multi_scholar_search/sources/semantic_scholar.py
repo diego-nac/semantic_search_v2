@@ -20,7 +20,7 @@ _FIELDS = ",".join([
     "externalIds", "openAccessPdf", "abstract", "venue", "isOpenAccess",
     "publicationDate",
 ])
-_PAGE_SIZE = 10
+_PAGE_SIZE = 50
 _MAX_LIMIT = 50
 _MAX_RETRIES = 6          # backoff sequence: 2, 4, 8, 16, 32, 64 s
 _BACKOFF_BASE = 2.0

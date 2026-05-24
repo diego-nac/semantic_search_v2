@@ -19,6 +19,7 @@ class Settings(BaseSettings):
 
     save_results: bool = False
     data_dir: str = "data"
+    default_limit: int = 10
 
     # Anti-rate-limit: seconds to wait between page fetches (0 = no delay)
     page_delay: float = 3.0

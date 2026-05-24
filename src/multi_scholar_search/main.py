@@ -1,9 +1,15 @@
 import asyncio
 import logging
 import re
+import sys
 from enum import Enum
 from typing import Optional
 from urllib.parse import urlparse
+
+if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if sys.stderr.encoding and sys.stderr.encoding.lower() != "utf-8":
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 import typer
 from rich.console import Console
@@ -46,7 +52,6 @@ _NOT_IMPLEMENTED = {
     Source.scopus,
     Source.web_of_science,
     Source.research_rabbit,
-    Source.connected_papers,
     Source.elicit,
     Source.scite,
     Source.openalex,
@@ -128,6 +133,10 @@ async def _run_source(
             from .sources.semantic_scholar import search_async
             articles = await search_async(query, limit=limit)
 
+        elif source == Source.connected_papers:
+            from .sources.connected_papers import search_async
+            articles = await search_async(query, limit=limit)
+
         # Year filter
         if articles and (year_from or year_to):
             articles = [
@@ -175,8 +184,8 @@ def search(
         help="Source to search (repeatable). Default: all implemented sources.",
     ),
     limit: int = typer.Option(
-        50, "--limit", "-l",
-        help="Max results per source (max 50).",
+        None, "--limit", "-l",
+        help="Max results per source. Defaults to DEFAULT_LIMIT env var (default: 10).",
     ),
     sort: SortOrder = typer.Option(
         SortOrder.citations, "--sort", "-o",
@@ -200,6 +209,7 @@ def search(
     ),
 ):
     from .config import settings
+    effective_limit = limit if limit is not None else settings.default_limit
     effective_save = save or settings.save_results
 
     selected = [s for s in (sources or ALL_SOURCES) if s not in _NOT_IMPLEMENTED]
@@ -212,7 +222,7 @@ def search(
     console.print(Panel(
         f"[bold]Query:[/bold] {query}\n"
         f"[bold]Sources:[/bold] {', '.join(s.value for s in (sources or ALL_SOURCES))}\n"
-        f"[bold]Limit:[/bold] {limit} per source\n"
+        f"[bold]Limit:[/bold] {effective_limit} per source\n"
         f"[bold]Sort:[/bold] {sort.value}\n"
         f"[bold]Enrich:[/bold] {'yes' if enrich else 'no (fast)'}"
         + year_range,
@@ -228,7 +238,7 @@ def search(
         raise typer.Exit(1)
 
     log.info("Searching %d source(s) in parallel…", len(selected))
-    results = asyncio.run(_run_all(selected, query, limit, sort, year_from, year_to, enrich, effective_save))
+    results = asyncio.run(_run_all(selected, query, effective_limit, sort, year_from, year_to, enrich, effective_save))
 
     total = 0
     for source, articles in results:
