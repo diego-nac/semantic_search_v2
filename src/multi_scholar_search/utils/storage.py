@@ -2,7 +2,7 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 
-from ..models.google_scholar import ScholarArticle
+from ..models.base import BaseArticle
 
 
 def _slugify(text: str) -> str:
@@ -19,8 +19,8 @@ def _next_index(folder: Path) -> int:
     return len(existing)
 
 
-def build_filepath(query: str, data_dir: str) -> Path:
-    folder = Path(data_dir) / "google_scholar"
+def build_filepath(query: str, data_dir: str, source: str = "google_scholar") -> Path:
+    folder = Path(data_dir) / source
     index = _next_index(folder)
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     slug = _slugify(query)
@@ -28,8 +28,9 @@ def build_filepath(query: str, data_dir: str) -> Path:
     return folder / filename
 
 
-def save_articles(articles: list[ScholarArticle], query: str, data_dir: str) -> Path:
-    path = build_filepath(query, data_dir)
+def save_articles(articles: list[BaseArticle], query: str, data_dir: str) -> Path:
+    source = articles[0].source if articles else "unknown"
+    path = build_filepath(query, data_dir, source)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as f:
         for article in articles:

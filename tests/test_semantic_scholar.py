@@ -106,8 +106,8 @@ def test_parse_returns_none_on_missing_title_key():
 
 # --- constants ---
 
-def test_page_size_is_10():
-    assert _PAGE_SIZE == 10
+def test_page_size_is_50():
+    assert _PAGE_SIZE == 50
 
 
 def test_max_limit_is_50():
