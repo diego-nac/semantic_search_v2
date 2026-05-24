@@ -211,34 +211,36 @@ async def _fetch_page(client: BrowserClient, url: str, query: str, page: int) ->
 
 async def search_async(query: str, limit: int = 10) -> list[ScholarArticle]:
     limit = min(limit, MAX_LIMIT)
-    log.info("Fetching up to %d results via scholarly", limit)
+    pages_needed = math.ceil(limit / RESULTS_PER_PAGE)
 
-    loop = asyncio.get_event_loop()
-    all_articles = await loop.run_in_executor(None, _scholarly_search_sync, query, limit)
+    log.info("Fetching %d page(s) via browser scraping", pages_needed)
 
-    # If scholarly yielded nothing, fall back to browser scraping
+    client = BrowserClient()
+    all_articles: list[ScholarArticle] = []
+
+    for page in range(pages_needed):
+        start = page * RESULTS_PER_PAGE
+        url = _build_url(query, start=start)
+        page_articles = await _fetch_page(client, url, query, page + 1)
+
+        if not page_articles:
+            log.warning("Page %d returned no results, stopping pagination", page + 1)
+            break
+
+        all_articles.extend(page_articles)
+        log.info("Total so far: %d/%d", len(all_articles), limit)
+
+        if len(all_articles) >= limit:
+            break
+
+        if page < pages_needed - 1 and settings.page_delay > 0:
+            await asyncio.sleep(settings.page_delay)
+
+    # If browser scraping yielded nothing, fall back to scholarly
     if not all_articles:
-        log.warning("scholarly returned 0 results — falling back to browser scraping")
-        pages_needed = math.ceil(limit / RESULTS_PER_PAGE)
-        client = BrowserClient()
-
-        for page in range(pages_needed):
-            start = page * RESULTS_PER_PAGE
-            url = _build_url(query, start=start)
-            page_articles = await _fetch_page(client, url, query, page + 1)
-
-            if not page_articles:
-                log.warning("Page %d returned no results, stopping pagination", page + 1)
-                break
-
-            all_articles.extend(page_articles)
-            log.info("Total so far: %d/%d", len(all_articles), limit)
-
-            if len(all_articles) >= limit:
-                break
-
-            if page < pages_needed - 1 and settings.page_delay > 0:
-                await asyncio.sleep(settings.page_delay)
+        log.warning("Browser scraping returned 0 results — falling back to scholarly")
+        loop = asyncio.get_event_loop()
+        all_articles = await loop.run_in_executor(None, _scholarly_search_sync, query, limit)
 
     return all_articles[:limit]
 
