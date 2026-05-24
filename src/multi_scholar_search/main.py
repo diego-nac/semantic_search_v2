@@ -30,14 +30,12 @@ log = logging.getLogger("mss")
 
 class Source(str, Enum):
     google_scholar = "google_scholar"
-    scopus = "scopus"
     web_of_science = "web_of_science"
     semantic_scholar = "semantic_scholar"
     research_rabbit = "research_rabbit"
     connected_papers = "connected_papers"
     elicit = "elicit"
     scite = "scite"
-    openalex = "openalex"
 
 
 class SortOrder(str, Enum):
@@ -49,12 +47,10 @@ class SortOrder(str, Enum):
 ALL_SOURCES = [s for s in Source]
 
 _NOT_IMPLEMENTED = {
-    Source.scopus,
     Source.web_of_science,
     Source.research_rabbit,
     Source.elicit,
     Source.scite,
-    Source.openalex,
 }
 
 
