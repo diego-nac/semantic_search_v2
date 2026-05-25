@@ -30,10 +30,13 @@ log = logging.getLogger("mss")
 
 class Source(str, Enum):
     google_scholar = "google_scholar"
-    web_of_science = "web_of_science"
     semantic_scholar = "semantic_scholar"
-    research_rabbit = "research_rabbit"
     connected_papers = "connected_papers"
+    arxiv = "arxiv"
+    ieee = "ieee"
+    springer = "springer"
+    web_of_science = "web_of_science"
+    research_rabbit = "research_rabbit"
     elicit = "elicit"
     scite = "scite"
 
@@ -131,6 +134,18 @@ async def _run_source(
 
         elif source == Source.connected_papers:
             from .sources.connected_papers import search_async
+            articles = await search_async(query, limit=limit)
+
+        elif source == Source.arxiv:
+            from .sources.arxiv import search_async
+            articles = await search_async(query, limit=limit)
+
+        elif source == Source.ieee:
+            from .sources.ieee import search_async
+            articles = await search_async(query, limit=limit)
+
+        elif source == Source.springer:
+            from .sources.springer import search_async
             articles = await search_async(query, limit=limit)
 
         # Year filter
